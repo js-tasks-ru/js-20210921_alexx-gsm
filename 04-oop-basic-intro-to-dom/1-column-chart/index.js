@@ -18,16 +18,16 @@ export default class ColumnChart {
   }
 
   render() {
-    const wrapper = document.createElement('div');
+    const wrapper = document.createElement("div");
     wrapper.innerHTML = this.renderChart();
     this.element = wrapper.firstElementChild;
   }
 
   renderChart() {
-    const isLoadling = !this.chartData?.data?.length;
+    const isLoading = !this.chartData?.data?.length;
 
     return `
-      <div class="column-chart${isLoadling ? ' column-chart_loading' : ''}" style="--chart-height: ${this.chartHeight}">
+      <div class="column-chart${isLoading ? " column-chart_loading" : ""}" style="--chart-height: ${this.chartHeight}">
         ${this.renderTitle()}
         <div class="column-chart__container">
           <div data-element="header" class="column-chart__header">${this.getTotalValue()}</div>
@@ -41,14 +41,17 @@ export default class ColumnChart {
 
   renderTitle() {
     return `
-    <div class="column-chart__title">
-      Total ${this.chartData?.label || ''}
-      ${this.renderViewAllLink()}
-    </div>`;
+      <div class="column-chart__title">
+        Total ${this.chartData?.label || ""}
+        ${this.renderViewAllLink()}
+      </div>
+    `;
   }
 
   renderViewAllLink() {
-    return this.chartData?.data?.length ? '' : `<a class="column-chart__link" href="${this.chartData?.link}">View all</a>`;
+    return this.chartData?.link
+      ? `<a class="column-chart__link" href="${this.chartData?.link}">View all</a>`
+      : "";
   }
 
   renderChartBody() {
@@ -56,13 +59,14 @@ export default class ColumnChart {
       return this.renderSkeleton();
     }
 
-    return this.getChartValues().map(this.renderChartElement.bind(this)).join('');
+    return this.getChartValues()
+      .map(this.renderChartElement.bind(this))
+      .join("");
   }
 
-  renderChartElement({percent, value}) {
+  renderChartElement({ percent, value }) {
     return `<div style="--value: ${value}" data-tooltip="${percent}"></div>`;
   }
-
 
   renderSkeleton() {
     return `
@@ -101,28 +105,28 @@ export default class ColumnChart {
       </svg>`;
   }
 
-  destroy() {
-    this.element = null;
-  }
+  destroy() {}
 
   remove() {
     this.element = null;
   }
 
   getTotalValue() {
-    const {value, formatHeading} = this.chartData;
+    const { value, formatHeading } = this.chartData;
 
-    return typeof formatHeading === 'function' ? formatHeading(new Intl.NumberFormat().format(value)) : value;
+    return typeof formatHeading === "function"
+      ? formatHeading(new Intl.NumberFormat().format(value))
+      : value;
   }
 
   getChartValues() {
-    const {data} = this.chartData;
+    const { data } = this.chartData;
     const maxValue = Math.max(...data);
     const k = this.chartHeight / maxValue;
 
-    return data.map(value => ({
-      percent: (value / maxValue * 100).toFixed(0) + '%',
-      value: String(Math.floor(value * k))
+    return data.map((value) => ({
+      percent: ((value / maxValue) * 100).toFixed(0) + "%",
+      value: String(Math.floor(value * k)),
     }));
   }
 }
