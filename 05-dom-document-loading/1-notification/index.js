@@ -1,26 +1,38 @@
 export default class NotificationMessage {
+  static instance;
+
   message;
   duration;
   type;
+  element;
+  notificationTimer;
 
-  constructor(message, {duration, type} = {}) {
-    this.message = message;
-    this.duration = duration || 1000;
-    this.type = type || 'success';
+  constructor(message, {duration = 1000, type = 'success'} = {}) {
+    if (NotificationMessage.instance) {
+      NotificationMessage.instance.update({message, duration, type});
+      return NotificationMessage.instance;
+    }
 
-    this.render();
-
-    this.show = this.show.bind(this);
-    this.destroy = this.destroy.bind(this);
+    this.update({message, duration, type});
+    NotificationMessage.instance = this;
   }
 
   render() {
     const wrapper = document.createElement("div");
-    wrapper.innerHTML = this.renderNotification();
+    wrapper.innerHTML = this.template;
     this.element = wrapper.firstElementChild;
   }
 
-  renderNotification() {
+  update({message, duration, type}) {
+    this.message = message;
+    this.duration = duration;
+    this.type = type;
+
+    this.destroy();
+    this.render();
+  }
+
+  get template() {
     return `
       <div class="${this.getClassNames()}" style="${this.getDuration()}">
         <div class="timer"></div>
@@ -43,26 +55,17 @@ export default class NotificationMessage {
   }
 
   show(parentNode) {
-    if (window.notificationTimer) {
-      this.destroy();
-    }
+    (parentNode || document.body).append(this.element);
 
-    if (parentNode) {
-      parentNode.append(this.element);
-    } else {
-      document.body.append(this.element);
-    }
-
-    window.notificationTimer = setTimeout(() => this.destroy(), this.duration);
+    this.notificationTimer = setTimeout(() => this.destroy(), this.duration);
   }
 
   remove() {
-    clearTimeout(window.notificationTimer);
-    document.querySelector('.notification')?.remove();
+    clearTimeout(this.notificationTimer);
   }
 
   destroy() {
     this.remove();
-    document.querySelector('.notification')?.remove();
+    this.element?.remove();
   }
 }
